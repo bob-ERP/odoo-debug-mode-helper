@@ -34,8 +34,7 @@ async function getCustomUrls() {
  */
 async function addCustomUrl(url) {
   const customUrls = await getCustomUrls();
-  const urlObj = new URL(url);
-  const baseUrl = urlObj.origin + urlObj.pathname;
+  const baseUrl = getOdooInstanceBaseUrl(url);
   
   if (!customUrls.includes(baseUrl)) {
     customUrls.push(baseUrl);
@@ -49,8 +48,7 @@ async function addCustomUrl(url) {
  */
 async function removeCustomUrl(url) {
   const customUrls = await getCustomUrls();
-  const urlObj = new URL(url);
-  const baseUrl = urlObj.origin + urlObj.pathname;
+  const baseUrl = getOdooInstanceBaseUrl(url);
   
   const index = customUrls.indexOf(baseUrl);
   if (index > -1) {
@@ -70,8 +68,7 @@ async function isOdooWebURL(url) {
   }
 
   const customUrls = await getCustomUrls();
-  const urlObj = new URL(url);
-  const baseUrl = urlObj.origin + urlObj.pathname;
+  const baseUrl = getOdooInstanceBaseUrl(url);
   return customUrls.some(customUrl => baseUrl === customUrl);
 }
 
@@ -82,6 +79,31 @@ async function isOdooWebURL(url) {
  */
 function isOdoo18Pattern(urlObj) {
   return urlObj.pathname.startsWith('/odoo');
+}
+
+/**
+ * Gets the normalized base URL for an Odoo instance.
+ * This ensures all pages within the same Odoo instance share the same preference.
+ * @param {string} url 
+ * @returns {string} The normalized base URL
+ */
+function getOdooInstanceBaseUrl(url) {
+  const urlObj = new URL(url);
+  const origin = urlObj.origin;
+  const pathname = urlObj.pathname;
+  
+  // For Odoo 19 URLs with /odoo/* pattern
+  if (pathname.startsWith('/odoo/') || pathname === '/odoo') {
+    return `${origin}/odoo`;
+  }
+  
+  // For URLs with /web/* pattern
+  if (pathname.startsWith('/web/') || pathname === '/web') {
+    return `${origin}/web`;
+  }
+  
+  // For custom URLs or other patterns, use origin + pathname as before
+  return origin + pathname;
 }
 
 /**
@@ -160,8 +182,7 @@ async function getDisabledAutoDebugUrls() {
  */
 async function disableAutoDebug(url) {
   const disabledUrls = await getDisabledAutoDebugUrls();
-  const urlObj = new URL(url);
-  const baseUrl = urlObj.origin + urlObj.pathname;
+  const baseUrl = getOdooInstanceBaseUrl(url);
   
   if (!disabledUrls.includes(baseUrl)) {
     disabledUrls.push(baseUrl);
@@ -175,8 +196,7 @@ async function disableAutoDebug(url) {
  */
 async function enableAutoDebug(url) {
   const disabledUrls = await getDisabledAutoDebugUrls();
-  const urlObj = new URL(url);
-  const baseUrl = urlObj.origin + urlObj.pathname;
+  const baseUrl = getOdooInstanceBaseUrl(url);
   
   const index = disabledUrls.indexOf(baseUrl);
   if (index > -1) {
@@ -192,8 +212,7 @@ async function enableAutoDebug(url) {
  */
 async function isAutoDebugDisabled(url) {
   const disabledUrls = await getDisabledAutoDebugUrls();
-  const urlObj = new URL(url);
-  const baseUrl = urlObj.origin + urlObj.pathname;
+  const baseUrl = getOdooInstanceBaseUrl(url);
   return disabledUrls.includes(baseUrl);
 }
 
@@ -206,7 +225,7 @@ async function handleIconClick(tab) {
 
   try {
     const urlObj = new URL(tab.url);
-    const baseUrl = urlObj.origin + urlObj.pathname;
+    const baseUrl = getOdooInstanceBaseUrl(tab.url);
     const customUrls = await getCustomUrls();
     const isDisabled = await isAutoDebugDisabled(tab.url);
     const hasDebug = hasDebugParam(urlObj);

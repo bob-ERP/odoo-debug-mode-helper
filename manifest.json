@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Odoo Debug Mode Helper",
-    "version": "1.1.6",
+    "version": "1.1.7",
     "description": "Automatically enables debug mode for Odoo instances and updates the extension icon accordingly.",
     "permissions": [
       "tabs",
