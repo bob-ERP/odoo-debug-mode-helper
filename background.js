@@ -307,7 +307,10 @@ async function processTab(tab) {
     // Update the icon based on debug parameter
     updateIcon(tab, debugPresent);
 
-    if (!debugPresent && !isDisabled) {
+    // Skip auto debug for editor pages
+    const isEditorPage = urlObj.pathname.includes('/editor/');
+
+    if (!debugPresent && !isDisabled && !isEditorPage) {
       // Append debug parameter and reload the tab
       const newURL = appendDebugParam(urlObj);
       chrome.tabs.update(tab.id, { url: newURL });
